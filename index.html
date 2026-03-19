@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Jay Tank — AI Engineer & Developer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#03050d;
+  --glass:rgba(6,14,30,0.68);
+  --border:rgba(99,179,237,0.13);
+  --border-h:rgba(99,179,237,0.38);
+  --blue:#4fa8e8;
+  --blue2:#7dd3fc;
+  --blue-dim:rgba(79,168,232,0.1);
+  --blue-glow:rgba(79,168,232,0.3);
+  --teal:#2dd4bf;
+  --teal-dim:rgba(45,212,191,0.09);
+  --text:#e2eeff;
+  --text-s:#8baabb;
+  --text-d:#2a3d52;
+  --ff-h:'Syne',sans-serif;
+  --ff-b:'Inter',sans-serif;
+  --ff-m:'JetBrains Mono',monospace;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--ff-b);
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:#1a2d42;border-radius:2px}
+::-webkit-scrollbar-thumb:hover{background:var(--blue)}
+
+/* ══════════════════════════════════════
+   CANVAS — strictly behind everything
+══════════════════════════════════════ */
+#three-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  display: block;
+}
+
+/* ══════════════════════════════════════
+   ALL PAGE CONTENT above canvas
+══════════════════════════════════════ */
+.nav, section, footer {
+  position: relative;
+  z-index: 10;
+}
+
+/* ══════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════ */
+.wrap { max-width: 1100px; margin: 0 auto; padding: 0 2rem; }
+
+a { text-decoration: none; color: inherit; }
+ul { list-style: none; }
+button { border: none; cursor: pointer; }
+
+/* ══════════════════════════════════════
+   SCROLL REVEAL
+══════════════════════════════════════ */
+.rv  { opacity:0; transform:translateY(40px);  transition:opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1); }
+.rvl { opacity:0; transform:translateX(-40px); transition:opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1); }
+.rvr { opacity:0; transform:translateX(40px);  transition:opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1); }
+.rv.in, .rvl.in, .rvr.in { opacity:1; transform:none; }
+
+/* ══════════════════════════════════════
+   SHARED COMPONENTS
+══════════════════════════════════════ */
+.label {
+  font-family: var(--ff-m);
+  font-size: .65rem;
+  letter-spacing: .28em;
+  color: var(--blue2);
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  margin-bottom: .65rem;
+}
+.label::before { content: '//'; color: var(--blue); opacity: .6; }
+
+.h2 {
+  font-family: var(--ff-h);
+  font-size: clamp(1.9rem, 3.5vw, 2.8rem);
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: .5rem;
+}
+.h2 s { text-decoration: none; color: var(--blue2); }
+
+.card {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  transition: border-color .3s, box-shadow .3s;
+}
+.card:hover { border-color: var(--border-h); }
+
+/* Buttons */
+.btn {
+  font-family: var(--ff-m);
+  font-size: .76rem;
+  letter-spacing: .06em;
+  padding: .68rem 1.55rem;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  transition: all .22s ease;
+  white-space: nowrap;
+}
+.btn-fill  { background: var(--blue);  color: #020810; font-weight: 600; }
+.btn-fill:hover  { background: var(--blue2); box-shadow: 0 0 24px var(--blue-glow); transform: translateY(-2px); }
+.btn-line  { background: transparent; color: var(--blue); border: 1px solid var(--blue); }
+.btn-line:hover  { background: var(--blue-dim); box-shadow: 0 0 20px var(--blue-glow); transform: translateY(-2px); }
+.btn-teal  { background: transparent; color: var(--teal); border: 1px solid var(--teal); }
+.btn-teal:hover  { background: var(--teal-dim); transform: translateY(-2px); }
+.btn-li    { background: transparent; color: #5b9bd5; border: 1px solid #3a6ea8; }
+.btn-li:hover    { background: rgba(91,155,213,.1); transform: translateY(-2px); }
+
+/* ══════════════════════════════════════
+   NAVBAR
+══════════════════════════════════════ */
+.nav {
+  position: fixed !important;
+  top: 0; left: 0; right: 0;
+  z-index: 1000 !important;
+  padding: 1.2rem 0;
+  transition: background .4s, border-color .35s, padding .3s;
+  border-bottom: 1px solid transparent;
+}
+.nav.on {
+  background: rgba(3,5,13,.93);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-color: var(--border);
+  padding: .8rem 0;
+}
+.nav-row { display: flex; align-items: center; justify-content: space-between; }
+
+.nav-brand {
+  font-family: var(--ff-h);
+  font-weight: 800;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--text);
+  letter-spacing: .05em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.nav-brand .acc { color: var(--blue2); }
+.nav-brand .live {
+  width: 7px; height: 7px;
+  background: var(--teal);
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.5)} }
+
+.nav-menu { display: flex; align-items: center; gap: 1.8rem; }
+.nav-menu a {
+  font-family: var(--ff-m);
+  font-size: .74rem;
+  color: var(--text-s);
+  letter-spacing: .06em;
+  transition: color .2s;
+  position: relative;
+}
+.nav-menu a::after {
+  content: '';
+  position: absolute;
+  bottom: -3px; left: 0;
+  width: 0; height: 1px;
+  background: var(--blue2);
+  transition: width .25s;
+}
+.nav-menu a:hover { color: var(--blue2); }
+.nav-menu a:hover::after { width: 100%; }
+
+.nav-side { display: flex; align-items: center; gap: .6rem; }
+.nav-icon {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-s);
+  transition: all .2s;
+}
+.nav-icon:hover { border-color: var(--blue2); color: var(--blue2); background: var(--blue-dim); }
+
+.hbg { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 3px; }
+.hbg span { display: block; width: 20px; height: 2px; background: var(--text); border-radius: 2px; transition: transform .3s, opacity .3s; }
+.hbg.o span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.hbg.o span:nth-child(2) { opacity: 0; }
+.hbg.o span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+@media(max-width:860px){
+  .hbg { display: flex; }
+  .nav-menu, .nav-side {
+    position: fixed;
+    top: 0; right: -100%;
+    width: 72vw; height: 100vh;
+    background: rgba(3,5,13,.97);
+    backdrop-filter: blur(24px);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 2.2rem;
+    transition: right .32s;
+    border-left: 1px solid var(--border);
+    z-index: 2000;
+  }
+  .nav-menu a { font-size: 1rem; }
+  .nav-menu.o, .nav-side.o { right: 0; }
+}
+
+/* ══════════════════════════════════════
+   HERO
+══════════════════════════════════════ */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding-top: 80px;
+  overflow: hidden;
+}
+
+.hero-inner {
+  padding: 60px 0 80px;
+  position: relative;
+  z-index: 10;
+}
+
+/* Available badge */
+.hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: .55rem;
+  background: rgba(45,212,191,.07);
+  border: 1px solid rgba(45,212,191,.22);
+  border-radius: 100px;
+  padding: .38rem 1rem;
+  margin-bottom: 1.8rem;
+  opacity: 1;
+}
+.hero-tag-dot {
+  width: 7px; height: 7px;
+  background: var(--teal);
+  border-radius: 50%;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+.hero-tag span { font-family: var(--ff-m); font-size: .67rem; color: var(--teal); letter-spacing: .14em; }
+
+/* Name */
+.hero-name {
+  font-family: var(--ff-h);
+  font-size: clamp(3.2rem, 9vw, 7rem);
+  font-weight: 800;
+  line-height: .93;
+  letter-spacing: -.02em;
+  margin-bottom: 1.1rem;
+}
+.nm1 {
+  display: block;
+  background: linear-gradient(120deg, #ddeeff 0%, #7dd3fc 45%, #4fa8e8 80%, #2dd4bf 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.nm2 {
+  display: block;
+  font-size: .44em;
+  color: rgba(139,170,187,.55);
+  -webkit-text-fill-color: rgba(139,170,187,.55);
+  letter-spacing: .22em;
+  margin-top: .5rem;
+}
+
+/* Typewriter row */
+.hero-type-row {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  margin-bottom: 1.5rem;
+  height: 2rem;
+}
+.hero-type-pre { font-family: var(--ff-m); font-size: .8rem; color: var(--text-s); }
+.hero-type-val { font-family: var(--ff-m); font-size: clamp(.9rem,2vw,1.15rem); color: var(--blue2); letter-spacing: .04em; }
+.hero-caret    { font-size: 1.1rem; color: var(--blue2); animation: blink 1s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* Description */
+.hero-desc {
+  font-size: .92rem;
+  color: var(--text-s);
+  line-height: 1.88;
+  max-width: 490px;
+  margin-bottom: 2.5rem;
+  font-weight: 300;
+}
+.hero-desc b { color: var(--blue2); font-weight: 500; }
+
+/* CTA buttons */
+.hero-btns { display: flex; gap: .8rem; flex-wrap: wrap; margin-bottom: 3rem; }
+
+/* Stats */
+.hero-nums  { display: flex; align-items: center; gap: 2rem; flex-wrap: wrap; }
+.hn         { display: flex; flex-direction: column; }
+.hn-v       { font-family: var(--ff-h); font-size: 1.6rem; font-weight: 700; color: var(--text); line-height: 1; }
+.hn-l       { font-size: .6rem; color: var(--text-s); letter-spacing: .14em; text-transform: uppercase; margin-top: 3px; }
+.hn-sep     { width: 1px; height: 36px; background: var(--border); }
+
+/* Scroll indicator */
+.scroll-ind {
+  position: absolute;
+  bottom: 2rem; left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .4rem;
+  z-index: 10;
+}
+.scroll-bar {
+  width: 1px; height: 42px;
+  background: linear-gradient(to bottom, transparent, var(--blue));
+  animation: sp 2.4s ease-in-out infinite;
+}
+.scroll-ind span { font-family: var(--ff-m); font-size: .58rem; letter-spacing: .28em; color: var(--text-d); text-transform: uppercase; }
+@keyframes sp { 0%,100%{opacity:.3} 50%{opacity:1} }
+
+@media(max-width:580px) {
+  .hero-btns { flex-direction: column; align-items: flex-start; }
+  .hero-nums  { gap: 1.2rem; }
+}
+
+/* ══════════════════════════════════════
+   ABOUT
+══════════════════════════════════════ */
+.about { padding: 7rem 0; }
+.about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; }
+.about-body p { color: var(--text-s); font-size: .875rem; line-height: 1.9; margin-bottom: 1.1rem; font-weight: 300; }
+.about-body p b { color: var(--blue2); font-weight: 500; }
+.chips { display: flex; flex-wrap: wrap; gap: .45rem; margin-top: 1.5rem; }
+.chip {
+  font-family: var(--ff-m);
+  font-size: .67rem;
+  letter-spacing: .06em;
+  padding: .3rem .85rem;
+  border-radius: 100px;
+  background: var(--blue-dim);
+  color: var(--blue2);
+  border: 1px solid rgba(79,168,232,.18);
+  transition: all .2s;
+}
+.chip:hover { background: rgba(79,168,232,.18); border-color: var(--blue); }
+
+/* Code block card */
+.code-block { overflow: hidden; }
+.cb-header {
+  display: flex; align-items: center; gap: .6rem;
+  padding: .75rem 1.1rem;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,.25);
+}
+.cb-dots { display: flex; gap: 5px; }
+.cbd { width: 9px; height: 9px; border-radius: 50%; }
+.cb-fname { font-family: var(--ff-m); font-size: .67rem; color: var(--text-d); margin-left: auto; }
+.cb-body { padding: 1.2rem 1.4rem; font-family: var(--ff-m); font-size: .76rem; line-height: 1.95; }
+.cl { white-space: nowrap; }
+.cl.i { padding-left: 1.3rem; }
+.cl.gap { margin-top: .25rem; }
+.cl.cr { color: var(--blue2); animation: blink 1s step-end infinite; }
+.ck{color:#79b8ff} .cv{color:var(--blue2)} .cs{color:#a5d6a7}
+.ce{color:var(--teal)} .cc{color:var(--text-d);font-style:italic} .co{color:#8baabb} .ca{color:#ffcc80}
+
+.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; margin-top: .75rem; }
+.ig { display: flex; align-items: center; gap: .85rem; padding: .9rem 1rem; }
+.ig svg { color: var(--blue); flex-shrink: 0; }
+.ig-t { display: flex; flex-direction: column; min-width: 0; }
+.ig-l { font-size: .58rem; color: var(--text-d); letter-spacing: .14em; text-transform: uppercase; font-family: var(--ff-m); }
+.ig-v { font-size: .74rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+@media(max-width:840px) {
+  .about-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+  .info-grid  { grid-template-columns: 1fr; }
+}
+
+/* ══════════════════════════════════════
+   EDUCATION
+══════════════════════════════════════ */
+.edu { padding: 6rem 0; background: linear-gradient(180deg, transparent, rgba(79,168,232,.015) 50%, transparent); }
+.edu-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-top: 3rem; align-items: start; }
+
+.timeline { display: flex; flex-direction: column; }
+.ti { display: grid; grid-template-columns: 50px 1fr; gap: 1.3rem; }
+.ti-col { display: flex; flex-direction: column; align-items: center; padding-top: 1rem; }
+.ti-node {
+  width: 42px; height: 42px; border-radius: 10px;
+  background: var(--glass); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.05rem; flex-shrink: 0; z-index: 1; transition: border-color .3s;
+}
+.ti.cur .ti-node { border-color: rgba(79,168,232,.45); box-shadow: 0 0 16px rgba(79,168,232,.15); }
+.ti-line { width: 1px; flex: 1; min-height: 32px; background: linear-gradient(to bottom, var(--border), transparent); margin: 6px 0; }
+.ti-card { padding: 1.35rem; margin-bottom: 1.35rem; }
+.ti-yr { font-family: var(--ff-m); font-size: .62rem; color: var(--blue2); letter-spacing: .18em; text-transform: uppercase; margin-bottom: .4rem; }
+.ti-deg { font-family: var(--ff-h); font-size: .92rem; font-weight: 700; color: var(--text); margin-bottom: .28rem; line-height: 1.3; }
+.ti-sch { font-size: .78rem; color: var(--text-s); margin-bottom: .85rem; font-weight: 300; }
+.ti-badge { display: inline-flex; align-items: center; gap: .38rem; font-family: var(--ff-m); font-size: .63rem; letter-spacing: .07em; padding: .26rem .72rem; border-radius: 100px; }
+.tb-done { background: rgba(0,200,100,.07); color: #68e08a; border: 1px solid rgba(0,200,100,.18); }
+.tb-live { background: var(--blue-dim); color: var(--blue2); border: 1px solid rgba(79,168,232,.22); }
+.pls { width: 7px; height: 7px; background: var(--blue2); border-radius: 50%; animation: pulse 1.8s ease-in-out infinite; }
+
+.certs { display: flex; flex-direction: column; gap: .9rem; }
+.crt { display: flex; gap: .95rem; align-items: flex-start; padding: 1.2rem 1.3rem; transition: all .25s; }
+.crt:hover { transform: translateX(5px); border-color: var(--border-h); }
+.crt-ico {
+  width: 38px; height: 38px; border-radius: 9px; flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(79,168,232,.14), rgba(45,212,191,.07));
+  border: 1px solid rgba(79,168,232,.18);
+  display: flex; align-items: center; justify-content: center; font-size: 1rem;
+}
+.crt-title { font-size: .82rem; font-weight: 600; color: var(--text); margin-bottom: .22rem; line-height: 1.3; }
+.crt-org   { font-family: var(--ff-m); font-size: .67rem; color: var(--blue2); letter-spacing: .06em; margin-bottom: .35rem; }
+.crt-desc  { font-size: .74rem; color: var(--text-s); line-height: 1.65; font-weight: 300; }
+
+@media(max-width:820px) { .edu-cols { grid-template-columns: 1fr; } }
+
+/* ══════════════════════════════════════
+   EXPERIENCE
+══════════════════════════════════════ */
+.exp { padding: 5.5rem 0; }
+.exp-card {
+  margin-top: 2.8rem; padding: 2rem 2.2rem;
+  display: grid; grid-template-columns: 52px 1fr; gap: 1.5rem; align-items: flex-start;
+  transition: all .3s;
+}
+.exp-card:hover { border-color: var(--border-h); box-shadow: 0 0 40px rgba(79,168,232,.04); }
+.exp-ico {
+  width: 52px; height: 52px; border-radius: 12px; flex-shrink: 0;
+  background: linear-gradient(135deg, rgba(255,193,0,.1), rgba(255,193,0,.04));
+  border: 1px solid rgba(255,193,0,.2);
+  display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+}
+.exp-role { font-family: var(--ff-h); font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: .2rem; }
+.exp-co   { font-family: var(--ff-m); font-size: .74rem; color: #ffcc80; letter-spacing: .08em; margin-bottom: .75rem; }
+.exp-desc { font-size: .82rem; color: var(--text-s); line-height: 1.82; font-weight: 300; }
+@media(max-width:560px) { .exp-card { grid-template-columns: 1fr; } .exp-ico { display: none; } }
+
+/* ══════════════════════════════════════
+   PROJECTS
+══════════════════════════════════════ */
+.projects { padding: 7rem 0; background: linear-gradient(180deg, transparent, rgba(45,212,191,.012) 50%, transparent); }
+.proj-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1.3rem; margin-top: 3rem; }
+.pj {
+  padding: 1.75rem; display: flex; flex-direction: column;
+  position: relative; overflow: hidden;
+  transition: transform .32s cubic-bezier(.22,1,.36,1), border-color .3s, box-shadow .3s;
+}
+.pj::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--blue), transparent);
+  transform: scaleX(0); transform-origin: left; transition: transform .45s ease;
+}
+.pj:hover { transform: translateY(-7px); border-color: rgba(79,168,232,.38); box-shadow: 0 20px 45px rgba(0,0,0,.45), 0 0 30px rgba(79,168,232,.07); }
+.pj:hover::after { transform: scaleX(1); }
+.pj-top  { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+.pj-num  { font-family: var(--ff-m); font-size: .62rem; color: var(--blue2); letter-spacing: .12em; background: var(--blue-dim); border: 1px solid rgba(79,168,232,.18); padding: .2rem .62rem; border-radius: 4px; }
+.pj-em   { font-size: 1.7rem; }
+.pj-title{ font-family: var(--ff-h); font-size: .98rem; font-weight: 700; color: var(--text); margin-bottom: .65rem; line-height: 1.3; }
+.pj-desc { font-size: .78rem; color: var(--text-s); line-height: 1.78; margin-bottom: 1.1rem; flex: 1; font-weight: 300; }
+.pj-tags { display: flex; flex-wrap: wrap; gap: .38rem; margin-bottom: 1.2rem; }
+.ptg { font-family: var(--ff-m); font-size: .6rem; letter-spacing: .05em; padding: .2rem .65rem; border-radius: 100px; background: rgba(100,80,160,.12); color: #c0aaf0; border: 1px solid rgba(100,80,160,.2); }
+.pj-foot { padding-top: .9rem; border-top: 1px solid var(--border); }
+.pj-gh   { font-size: .72rem; padding: .48rem 1.1rem; }
+.pj.wide { grid-column: span 2; }
+@media(max-width:700px) { .proj-grid { grid-template-columns: 1fr; } .pj.wide { grid-column: span 1; } }
+
+/* ══════════════════════════════════════
+   SKILLS
+══════════════════════════════════════ */
+.skills { padding: 7rem 0; }
+.sk-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 3.5rem; margin-top: 3rem; align-items: start; }
+.sk-bars { display: flex; flex-direction: column; gap: .85rem; }
+.sb { padding: 1.05rem 1.25rem; }
+.sb-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: .7rem; }
+.sb-nw   { display: flex; align-items: center; gap: .6rem; }
+.sb-em   { font-size: .95rem; }
+.sb-n    { font-size: .8rem; color: var(--text); letter-spacing: .02em; }
+.sb-p    { font-family: var(--ff-m); font-size: .68rem; color: var(--text-s); }
+.sb-track{ height: 3px; background: rgba(255,255,255,.04); border-radius: 100px; overflow: hidden; }
+.sb-fill { height: 100%; border-radius: 100px; width: 0; transition: width 1.35s cubic-bezier(.4,0,.2,1); }
+
+.sk-orbs-wrap { display: grid; grid-template-columns: repeat(3,1fr); gap: .9rem; }
+.sk-orb {
+  aspect-ratio: 1; border-radius: 13px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: .5rem; padding: .8rem .4rem; cursor: default; transition: all .28s;
+}
+.sk-orb:hover { transform: translateY(-5px) scale(1.05); border-color: var(--border-h); box-shadow: 0 10px 28px rgba(0,0,0,.3); }
+.sk-orb-em { font-size: 1.5rem; }
+.sk-orb-n  { font-family: var(--ff-m); font-size: .61rem; color: var(--text-s); text-align: center; letter-spacing: .04em; }
+
+@media(max-width:800px) { .sk-wrap { grid-template-columns: 1fr; } .sk-orbs-wrap { grid-template-columns: repeat(4,1fr); } }
+@media(max-width:460px) { .sk-orbs-wrap { grid-template-columns: repeat(3,1fr); } }
+
+/* ══════════════════════════════════════
+   RESUME
+══════════════════════════════════════ */
+.resume { padding: 5.5rem 0; background: linear-gradient(180deg, transparent, rgba(79,168,232,.018) 50%, transparent); }
+.res-card {
+  max-width: 720px; margin: 2.8rem auto 0; padding: 2.4rem 2.6rem;
+  display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: center; transition: all .3s;
+}
+.res-card:hover { border-color: var(--border-h); box-shadow: 0 0 48px rgba(79,168,232,.06); }
+.res-badge {
+  font-family: var(--ff-m); font-size: .62rem; color: var(--teal);
+  letter-spacing: .2em; text-transform: uppercase;
+  display: flex; align-items: center; gap: .45rem; margin-bottom: .75rem;
+}
+.res-badge::before { content: ''; width: 18px; height: 1px; background: var(--teal); display: inline-block; }
+.res-title { font-family: var(--ff-h); font-size: 1.4rem; font-weight: 700; color: var(--text); margin-bottom: .4rem; }
+.res-desc  { font-size: .82rem; color: var(--text-s); line-height: 1.7; font-weight: 300; }
+.res-btns  { display: flex; flex-direction: column; gap: .65rem; align-items: flex-end; }
+.res-links { display: flex; gap: .5rem; margin-top: .5rem; }
+.res-link  {
+  width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; color: var(--text-s); transition: all .2s;
+}
+.res-link:hover { border-color: var(--blue2); color: var(--blue2); background: var(--blue-dim); }
+@media(max-width:560px) { .res-card { grid-template-columns: 1fr; } .res-btns { align-items: flex-start; } }
+
+/* ══════════════════════════════════════
+   EXTRACURRICULAR
+══════════════════════════════════════ */
+.extra { padding: 5rem 0; }
+.extra-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: .9rem; margin-top: 2.5rem; }
+.ex { display: flex; gap: .95rem; align-items: flex-start; padding: 1.25rem 1.35rem; transition: all .22s; }
+.ex:hover { transform: translateX(5px); border-color: var(--border-h); }
+.ex-ic    { font-size: 1.2rem; flex-shrink: 0; margin-top: .1rem; }
+.ex-title { font-size: .83rem; font-weight: 600; color: var(--text); margin-bottom: .22rem; }
+.ex-desc  { font-size: .74rem; color: var(--text-s); line-height: 1.6; font-weight: 300; }
+@media(max-width:660px) { .extra-grid { grid-template-columns: 1fr; } }
+
+/* ══════════════════════════════════════
+   CONTACT
+══════════════════════════════════════ */
+.contact { padding: 7rem 0; }
+.ct-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 2.5rem; margin-top: 3rem; align-items: start; }
+.ct-info { display: flex; flex-direction: column; gap: .8rem; }
+.ct-tile { display: flex; align-items: center; gap: .95rem; padding: 1.05rem 1.15rem; }
+.ct-ic {
+  width: 38px; height: 38px; border-radius: 9px;
+  background: var(--blue-dim); border: 1px solid rgba(79,168,232,.18);
+  display: flex; align-items: center; justify-content: center; color: var(--blue); flex-shrink: 0;
+}
+.ct-l { font-family: var(--ff-m); font-size: .58rem; color: var(--text-d); text-transform: uppercase; letter-spacing: .14em; margin-bottom: 2px; }
+.ct-v { font-size: .78rem; color: var(--text); transition: color .2s; }
+a.ct-v:hover { color: var(--blue2); }
+.ct-socials { display: flex; gap: .65rem; margin-top: .2rem; }
+.ct-soc {
+  flex: 1; padding: .65rem; border-radius: 9px; border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; gap: .45rem;
+  font-family: var(--ff-m); font-size: .68rem; letter-spacing: .06em; color: var(--text-s);
+  background: transparent; transition: all .2s;
+}
+.ct-soc:hover    { border-color: var(--blue2); color: var(--blue2); background: var(--blue-dim); }
+.ct-soc.li:hover { border-color: #5b9bd5; color: #5b9bd5; background: rgba(91,155,213,.1); }
+
+.cf { padding: 1.9rem; }
+.cf-top { font-family: var(--ff-m); font-size: .72rem; color: var(--blue2); letter-spacing: .1em; text-transform: uppercase; margin-bottom: 1.3rem; }
+.cf-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+.fg { display: flex; flex-direction: column; gap: .35rem; margin-bottom: .85rem; }
+.fg label { font-family: var(--ff-m); font-size: .62rem; color: var(--text-s); letter-spacing: .12em; text-transform: uppercase; }
+.fg input, .fg textarea {
+  background: rgba(0,0,0,.28); border: 1px solid var(--border); border-radius: 8px;
+  padding: .68rem .95rem; color: var(--text); font-family: var(--ff-m); font-size: .78rem;
+  outline: none; resize: none; transition: border-color .22s, box-shadow .22s;
+}
+.fg input::placeholder, .fg textarea::placeholder { color: rgba(90,120,150,.4); }
+.fg input:focus, .fg textarea:focus { border-color: var(--border-h); box-shadow: 0 0 0 3px rgba(79,168,232,.07); }
+.cf-sub { width: 100%; justify-content: center; margin-top: .2rem; }
+.cf-ok  { font-family: var(--ff-m); font-size: .76rem; color: var(--teal); text-align: center; margin-top: .65rem; display: none; }
+.cf-ok.show { display: block; }
+@media(max-width:780px) { .ct-grid { grid-template-columns: 1fr; } .cf-row { grid-template-columns: 1fr; } }
+
+/* ══════════════════════════════════════
+   FOOTER
+══════════════════════════════════════ */
+.footer { border-top: 1px solid var(--border); padding: 2rem 0; background: rgba(3,5,13,.6); }
+.ft { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+.ft-brand { font-family: var(--ff-h); font-weight: 700; font-size: .92rem; color: var(--text); }
+.ft-copy  { font-family: var(--ff-m); font-size: .66rem; color: var(--text-d); letter-spacing: .05em; }
+.ft-links { display: flex; gap: .7rem; }
+.ft-links a {
+  width: 30px; height: 30px; border-radius: 7px; border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; color: var(--text-s); transition: all .2s;
+}
+.ft-links a:hover { border-color: var(--blue2); color: var(--blue2); background: var(--blue-dim); }
+@media(max-width:560px) { .ft { flex-direction: column; text-align: center; } }
+</style>
+</head>
+<body>
+
+<!-- Canvas renders BEHIND everything -->
+<canvas id="three-canvas"></canvas>
+
+<!-- ════ NAVBAR ════ -->
+<nav class="nav" id="nav">
+  <div class="wrap nav-row">
+    <div class="nav-brand" onclick="scrollTo({top:0,behavior:'smooth'})">
+      <span class="acc">{</span>Jay<span class="acc">}</span>
+      <span class="live"></span>
+    </div>
+    <ul class="nav-menu" id="nm">
+      <li><a href="#about">About</a></li>
+      <li><a href="#education">Education</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#resume">Resume</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <div class="nav-side" id="ns">
+      <a href="https://www.linkedin.com/in/jay-tank-a389803b1" target="_blank" class="nav-icon" title="LinkedIn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+      </a>
+      <a href="https://github.com/Jay-Tank2008" target="_blank" class="nav-icon" title="GitHub">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      </a>
+      <a href="Jay_Tank_Resume_Final.pdf" download class="btn btn-line" style="font-size:.7rem;padding:.42rem 1rem">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>CV
+      </a>
+    </div>
+    <button class="hbg" id="hbg" aria-label="menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- ════ HERO ════ -->
+<section class="hero">
+  <div class="wrap hero-inner">
+    <div class="hero-tag">
+      <span class="hero-tag-dot"></span>
+      <span>Available for opportunities</span>
+    </div>
+    <h1 class="hero-name">
+      <span class="nm1">Jay Tank</span>
+      <span class="nm2">AI ENGINEER &amp; DEVELOPER</span>
+    </h1>
+    <div class="hero-type-row">
+      <span class="hero-type-pre">~/</span>
+      <span class="hero-type-val" id="typed-el"></span>
+      <span class="hero-caret">|</span>
+    </div>
+    <p class="hero-desc">
+      I leverage <b>AI tools and intelligent systems</b> in my daily workflow to solve problems
+      faster, automate workflows, and build smarter solutions —
+      bridging modern ML with practical engineering.
+    </p>
+    <div class="hero-btns">
+      <a href="#projects" class="btn btn-fill">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        View Projects
+      </a>
+      <a href="Jay_Tank_Resume_Final.pdf" download class="btn btn-teal">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download Resume
+      </a>
+      <a href="https://www.linkedin.com/in/jay-tank-a389803b1" target="_blank" class="btn btn-li">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+        LinkedIn
+      </a>
+      <a href="https://github.com/Jay-Tank2008" target="_blank" class="btn btn-line">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
+    </div>
+    <div class="hero-nums">
+      <div class="hn"><span class="hn-v">5+</span><span class="hn-l">Projects</span></div>
+      <div class="hn-sep"></div>
+      <div class="hn"><span class="hn-v">2</span><span class="hn-l">Certifications</span></div>
+      <div class="hn-sep"></div>
+      <div class="hn"><span class="hn-v">SIH</span><span class="hn-l">2025</span></div>
+      <div class="hn-sep"></div>
+      <div class="hn"><span class="hn-v">AI</span><span class="hn-l">Focused</span></div>
+    </div>
+  </div>
+  <div class="scroll-ind">
+    <div class="scroll-bar"></div>
+    <span>scroll</span>
+  </div>
+</section>
+
+<!-- ════ ABOUT ════ -->
+<section id="about" class="about">
+  <div class="wrap">
+    <div class="about-grid">
+      <div class="rvl">
+        <p class="label">About Me</p>
+        <h2 class="h2">Building with <s>Intelligence</s></h2>
+        <div class="about-body">
+          <p>I'm <b>Jay Tank</b>, an AI enthusiast and prompt engineer who leverages artificial intelligence tools to automate workflows, accelerate productivity, and solve real-world problems.</p>
+          <p>Passionate about exploring <b>emerging AI technologies</b> and integrating them into practical applications — from NLP classifiers to full-stack CRM systems. Currently pursuing a Diploma in Computer Engineering at KJ Somaiya Polytechnic.</p>
+          <p>Participated in <b>Smart India Hackathon 2025</b>, contributed as a Volunteer at Techmaze, and continuously level up through AI certifications and hands-on projects.</p>
+        </div>
+        <div class="chips">
+          <span class="chip">AI Integration</span>
+          <span class="chip">Prompt Engineering</span>
+          <span class="chip">NLP / ML</span>
+          <span class="chip">Full-Stack Dev</span>
+          <span class="chip">Python</span>
+          <span class="chip">Automation</span>
+          <span class="chip">SIH 2025</span>
+        </div>
+      </div>
+      <div class="rvr">
+        <div class="card code-block">
+          <div class="cb-header">
+            <div class="cb-dots">
+              <span class="cbd" style="background:#ff5f56"></span>
+              <span class="cbd" style="background:#ffbd2e"></span>
+              <span class="cbd" style="background:#27c93f"></span>
+            </div>
+            <span class="cb-fname">profile.json</span>
+          </div>
+          <div class="cb-body">
+            <div class="cl"><span class="co">{</span></div>
+            <div class="cl i"><span class="ck">"name"</span><span class="co">: </span><span class="cs">"Jay Tank"</span><span class="co">,</span></div>
+            <div class="cl i"><span class="ck">"title"</span><span class="co">: </span><span class="cs">"AI Engineer &amp; Developer"</span><span class="co">,</span></div>
+            <div class="cl i"><span class="ck">"city"</span><span class="co">: </span><span class="cs">"Mumbai, India"</span><span class="co">,</span></div>
+            <div class="cl i"><span class="ck">"college"</span><span class="co">: </span><span class="cs">"KJ Somaiya Polytechnic"</span><span class="co">,</span></div>
+            <div class="cl i"><span class="ck">"hackathon"</span><span class="co">: </span><span class="ce">"SIH 2025"</span><span class="co">,</span></div>
+            <div class="cl i"><span class="ck">"certs"</span><span class="co">: [</span><span class="cs">"AI Skills"</span><span class="co">, </span><span class="cs">"AI &amp; ML"</span><span class="co">],</span></div>
+            <div class="cl i"><span class="ck">"open_to"</span><span class="co">: </span><span class="ca">"opportunities"</span><span class="co">,</span></div>
+            <div class="cl i"><span class="ck">"available"</span><span class="co">: </span><span class="ce">true</span></div>
+            <div class="cl"><span class="co">}</span></div>
+            <div class="cl gap"><span class="cc">// always learning, always building</span></div>
+            <div class="cl cr">▊</div>
+          </div>
+        </div>
+        <div class="info-grid">
+          <div class="card ig">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <div class="ig-t"><span class="ig-l">Location</span><span class="ig-v">Mumbai, India</span></div>
+          </div>
+          <div class="card ig">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <div class="ig-t"><span class="ig-l">Email</span><span class="ig-v">jaytank2008@gmail.com</span></div>
+          </div>
+          <div class="card ig">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81 19.79 19.79 0 01.03 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+            <div class="ig-t"><span class="ig-l">Phone</span><span class="ig-v">+91 7738356037</span></div>
+          </div>
+          <div class="card ig">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+            <div class="ig-t"><span class="ig-l">LinkedIn</span><span class="ig-v">Jay Tank</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ EDUCATION ════ -->
+<section id="education" class="edu">
+  <div class="wrap">
+    <div class="rv">
+      <p class="label">Education</p>
+      <h2 class="h2">Academic <s>Journey</s></h2>
+    </div>
+    <div class="edu-cols">
+      <div class="timeline">
+        <div class="ti rv">
+          <div class="ti-col"><div class="ti-node">🎓</div><div class="ti-line"></div></div>
+          <div class="card ti-card">
+            <div class="ti-yr">Batch 2023 – 2024</div>
+            <h3 class="ti-deg">Secondary School Certificate (SSC)</h3>
+            <p class="ti-sch">Shree ND Bhuta High School</p>
+            <span class="ti-badge tb-done">✓ Completed</span>
+          </div>
+        </div>
+        <div class="ti cur rv">
+          <div class="ti-col"><div class="ti-node">💻</div></div>
+          <div class="card ti-card">
+            <div class="ti-yr">2026 – Present</div>
+            <h3 class="ti-deg">Diploma in Computer Engineering</h3>
+            <p class="ti-sch">KJ Somaiya Polytechnic</p>
+            <span class="ti-badge tb-live"><span class="pls"></span>2nd Year · Pursuing</span>
+          </div>
+        </div>
+      </div>
+      <div class="rvr">
+        <p class="label" style="margin-bottom:1.1rem">Certifications</p>
+        <div class="certs">
+          <div class="card crt">
+            <div class="crt-ico">🤖</div>
+            <div>
+              <div class="crt-title">AI Skills Course</div>
+              <div class="crt-org">Applied AI · Practical Certification</div>
+              <div class="crt-desc">Hands-on experience with modern AI tools — automating tasks, enhancing productivity, and designing intelligent solutions for real-world challenges.</div>
+            </div>
+          </div>
+          <div class="card crt">
+            <div class="crt-ico">🧠</div>
+            <div>
+              <div class="crt-title">AI & Machine Learning Program</div>
+              <div class="crt-org">Acmegrade · Comprehensive ML Course</div>
+              <div class="crt-desc">Completed comprehensive AI/ML training covering algorithms, data preprocessing, model building, and real-world predictive modeling applications.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ EXPERIENCE ════ -->
+<section class="exp">
+  <div class="wrap">
+    <div class="rv">
+      <p class="label">Experience</p>
+      <h2 class="h2">Work <s>History</s></h2>
+    </div>
+    <div class="card exp-card rv">
+      <div class="exp-ico">🏭</div>
+      <div>
+        <div class="exp-role">Manufacturing Intern</div>
+        <div class="exp-co">Vaishali Gruhudyog</div>
+        <p class="exp-desc">Managed wholesale production operations, ensuring quality control, smooth workflow, and timely order fulfillment. Gained practical experience in inventory management and production supervision. Coordinated with customers, dealers, and cross-functional teams to ensure smooth operations.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ PROJECTS ════ -->
+<section id="projects" class="projects">
+  <div class="wrap">
+    <div class="rv">
+      <p class="label">Projects</p>
+      <h2 class="h2">Things I've <s>Built</s></h2>
+    </div>
+    <div class="proj-grid">
+
+      <div class="card pj rv">
+        <div class="pj-top"><span class="pj-num">01</span><span class="pj-em">🌐</span></div>
+        <h3 class="pj-title">Personal Portfolio Website</h3>
+        <p class="pj-desc">Designed and developed a fully responsive personal portfolio using HTML and CSS to showcase skills, projects, and achievements. Demonstrates front-end development and UI design capabilities.</p>
+        <div class="pj-tags"><span class="ptg">HTML</span><span class="ptg">CSS</span><span class="ptg">Responsive</span><span class="ptg">UI/UX</span></div>
+        <div class="pj-foot">
+          <a href="https://github.com/Jay-Tank2008/Personal-Portfolio" target="_blank" rel="noopener" class="btn btn-line pj-gh">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+
+      <div class="card pj rv" style="transition-delay:.1s">
+        <div class="pj-top"><span class="pj-num">02</span><span class="pj-em">🤖</span></div>
+        <h3 class="pj-title">Spam & Ham Text Classifier (NLP)</h3>
+        <p class="pj-desc">Built a machine learning model using NLP techniques to classify emails and SMS as spam or ham. Implemented data preprocessing, feature extraction, and predictive modeling.</p>
+        <div class="pj-tags"><span class="ptg">Python</span><span class="ptg">NLP</span><span class="ptg">Machine Learning</span><span class="ptg">Scikit-learn</span></div>
+        <div class="pj-foot">
+          <a href="https://github.com/Jay-Tank2008/Spam-Ham-Text-Classifier-Using-NLP" target="_blank" rel="noopener" class="btn btn-line pj-gh">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+
+      <div class="card pj rv" style="transition-delay:.2s">
+        <div class="pj-top"><span class="pj-num">03</span><span class="pj-em">🎮</span></div>
+        <h3 class="pj-title">Hangman Game (Python)</h3>
+        <p class="pj-desc">Interactive command-line Hangman game in Python applying logic building, loops, and conditional statements. Demonstrates core programming fundamentals and user interaction design.</p>
+        <div class="pj-tags"><span class="ptg">Python</span><span class="ptg">CLI</span><span class="ptg">Game Logic</span><span class="ptg">Control Flow</span></div>
+        <div class="pj-foot">
+          <a href="https://github.com/Jay-Tank2008/Hangman-Game-Using-Python" target="_blank" rel="noopener" class="btn btn-line pj-gh">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+
+      <div class="card pj rv" style="transition-delay:.3s">
+        <div class="pj-top"><span class="pj-num">04</span><span class="pj-em">✅</span></div>
+        <h3 class="pj-title">To-Do List Application</h3>
+        <p class="pj-desc">Task management application enabling users to add, update, and delete tasks. Demonstrates understanding of data structures, program flow, and building intuitive productivity tools.</p>
+        <div class="pj-tags"><span class="ptg">Python</span><span class="ptg">Data Structures</span><span class="ptg">CRUD</span><span class="ptg">Productivity</span></div>
+        <div class="pj-foot">
+          <a href="https://github.com/Jay-Tank2008/To-Do-list-" target="_blank" rel="noopener" class="btn btn-line pj-gh">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+
+      <div class="card pj wide rv" style="transition-delay:.4s">
+        <div class="pj-top"><span class="pj-num">05</span><span class="pj-em">📊</span></div>
+        <h3 class="pj-title">CRM Pipeline for ACS Energy — Full-Stack</h3>
+        <p class="pj-desc">A full-stack CRM built for ACS Energy to replace scattered Excel/WhatsApp lead tracking. Features lead capture, Kanban pipeline (New → Won/Lost), lead scoring, activity logging, role-based access, and reporting — giving ACS's sales team one clear view of every deal.</p>
+        <div class="pj-tags"><span class="ptg">Full-Stack</span><span class="ptg">CRM</span><span class="ptg">Kanban</span><span class="ptg">Lead Scoring</span><span class="ptg">Role-Based Access</span><span class="ptg">Reporting</span></div>
+        <div class="pj-foot">
+          <a href="https://github.com/Jay-Tank2008/CRM-Pipeline-For-ACS" target="_blank" rel="noopener" class="btn btn-line pj-gh">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ════ SKILLS ════ -->
+<section id="skills" class="skills">
+  <div class="wrap">
+    <div class="rv">
+      <p class="label">Skills</p>
+      <h2 class="h2">My <s>Toolkit</s></h2>
+    </div>
+    <div class="sk-wrap">
+      <div class="sk-bars rvl" id="sk-bars"></div>
+      <div class="rvr">
+        <p class="label" style="margin-bottom:1rem">All Skills</p>
+        <div class="sk-orbs-wrap" id="sk-orbs"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ RESUME ════ -->
+<section id="resume" class="resume">
+  <div class="wrap">
+    <div class="rv">
+      <p class="label">Resume</p>
+      <h2 class="h2">Download My <s>CV</s></h2>
+    </div>
+    <div class="card res-card rv">
+      <div>
+        <div class="res-badge">Latest · 2025</div>
+        <div class="res-title">Jay Tank — Resume</div>
+        <div class="res-desc">Full resume covering education, AI/ML certifications, projects,<br>skills, work experience, and SIH 2025 participation.</div>
+        <div class="res-links">
+          <a href="https://www.linkedin.com/in/jay-tank-a389803b1" target="_blank" class="res-link" title="LinkedIn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+          </a>
+          <a href="https://github.com/Jay-Tank2008" target="_blank" class="res-link" title="GitHub">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          </a>
+          <a href="mailto:jaytank2008@gmail.com" class="res-link" title="Email">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </a>
+        </div>
+      </div>
+      <div class="res-btns">
+        <a href="Jay_Tank_Resume_Final.pdf" download="Jay_Tank_Resume_Final.pdf" class="btn btn-fill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download PDF
+        </a>
+        <a href="Jay_Tank_Resume_Final.pdf" target="_blank" class="btn btn-line">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          Preview
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ EXTRACURRICULAR ════ -->
+<section class="extra">
+  <div class="wrap">
+    <div class="rv">
+      <p class="label">Beyond Code</p>
+      <h2 class="h2">Activities & <s>Volunteering</s></h2>
+    </div>
+    <div class="extra-grid">
+      <div class="card ex rv"><span class="ex-ic">🏆</span><div><div class="ex-title">Smart India Hackathon 2025</div><div class="ex-desc">Collaborated in a competitive innovation environment to develop practical technology solutions under strict deadlines, enhancing problem-solving and teamwork skills.</div></div></div>
+      <div class="card ex rv" style="transition-delay:.1s"><span class="ex-ic">🏏</span><div><div class="ex-title">Cricket Team — College Department</div><div class="ex-desc">Represented the department in inter-college tournaments and contributed to winning the championship, demonstrating leadership and competitive spirit.</div></div></div>
+      <div class="card ex rv" style="transition-delay:.2s"><span class="ex-ic">🎯</span><div><div class="ex-title">Volunteer — Techmaze, KJSP</div><div class="ex-desc">Marketing Team member contributing to event coordination, technical support, and promotional activities ensuring smooth execution and participant engagement.</div></div></div>
+      <div class="card ex rv" style="transition-delay:.3s"><span class="ex-ic">📚</span><div><div class="ex-title">Continuous Learning</div><div class="ex-desc">Regularly participates in technical workshops, online certifications, and AI-focused learning programs to stay current with emerging technologies.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ CONTACT ════ -->
+<section id="contact" class="contact">
+  <div class="wrap">
+    <div class="rv">
+      <p class="label">Contact</p>
+      <h2 class="h2">Let's <s>Connect</s></h2>
+      <p style="font-size:.86rem;color:var(--text-s);margin-top:.3rem;font-weight:300">Have a project or opportunity? I'd love to hear from you.</p>
+    </div>
+    <div class="ct-grid">
+      <div class="ct-info rvl">
+        <div class="card ct-tile">
+          <div class="ct-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 8.81 19.79 19.79 0 01.03 2.18 2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></div>
+          <div><div class="ct-l">Phone</div><a href="tel:+917738356037" class="ct-v">+91 7738356037</a></div>
+        </div>
+        <div class="card ct-tile">
+          <div class="ct-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+          <div><div class="ct-l">Email</div><a href="mailto:jaytank2008@gmail.com" class="ct-v">jaytank2008@gmail.com</a></div>
+        </div>
+        <div class="card ct-tile">
+          <div class="ct-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+          <div><div class="ct-l">Location</div><div class="ct-v">Mumbai, India</div></div>
+        </div>
+        <div class="ct-socials">
+          <a href="https://github.com/Jay-Tank2008" target="_blank" rel="noopener" class="ct-soc">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+            GitHub
+          </a>
+          <a href="https://www.linkedin.com/in/jay-tank-a389803b1" target="_blank" rel="noopener" class="ct-soc li">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+            LinkedIn
+          </a>
+        </div>
+      </div>
+      <div class="rvr">
+        <div class="card cf">
+          <div class="cf-top">// Send a message</div>
+          <form id="cf-form">
+            <div class="cf-row">
+              <div class="fg"><label>Name</label><input type="text" placeholder="Your name" required/></div>
+              <div class="fg"><label>Email</label><input type="email" placeholder="you@email.com" required/></div>
+            </div>
+            <div class="fg"><label>Subject</label><input type="text" placeholder="What's this about?"/></div>
+            <div class="fg"><label>Message</label><textarea rows="5" placeholder="Tell me about your project or idea..." required></textarea></div>
+            <button type="submit" class="btn btn-fill cf-sub" id="cf-sub">
+              Send Message
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+            </button>
+            <div class="cf-ok" id="cf-ok">✓ Message received — I'll get back to you soon!</div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════ FOOTER ════ -->
+<footer class="footer">
+  <div class="wrap ft">
+    <div class="ft-brand"><span style="color:var(--blue2)">{</span>Jay<span style="color:var(--blue2)">}</span></div>
+    <p class="ft-copy">© 2025 Jay Tank · Made with precision in Mumbai, India</p>
+    <div class="ft-links">
+      <a href="https://github.com/Jay-Tank2008" target="_blank" title="GitHub">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      </a>
+      <a href="https://www.linkedin.com/in/jay-tank-a389803b1" target="_blank" title="LinkedIn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+      </a>
+      <a href="mailto:jaytank2008@gmail.com" title="Email">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      </a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ══════════════════════════════════════
+   THREE.JS — GIANT ROTATING WIREFRAME CUBES
+   Canvas z-index:1, all content z-index:10
+══════════════════════════════════════ */
+(function(){
+  const canvas = document.getElementById('three-canvas');
+
+  // Size canvas to full viewport
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const renderer = new THREE.WebGLRenderer({
+    canvas: canvas,
+    antialias: true,
+    alpha: true,
+  });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setClearColor(0x000000, 0); // fully transparent background
+
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 5000);
+  camera.position.set(0, 0, 1400);
+
+  window.addEventListener('resize', () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+  });
+
+  // Build a wireframe cube from EdgesGeometry
+  function makeCube(size, color, opacity) {
+    const geo   = new THREE.BoxGeometry(size, size, size);
+    const edges = new THREE.EdgesGeometry(geo);
+    const mat   = new THREE.LineBasicMaterial({ color, transparent: true, opacity });
+    return new THREE.LineSegments(edges, mat);
+  }
+
+  const group = new THREE.Group();
+
+  // 5 nested cubes — different sizes & opacities
+  const c1 = makeCube(900,  0x4fa8e8, 0.30);
+  const c2 = makeCube(650,  0x7dd3fc, 0.18);
+  const c3 = makeCube(420,  0x2dd4bf, 0.14);
+  const c4 = makeCube(1150, 0x4fa8e8, 0.06);
+  const c5 = makeCube(200,  0x7dd3fc, 0.22);
+
+  c2.rotation.set(Math.PI/8,  Math.PI/4,  0);
+  c3.rotation.set(Math.PI/6,  0,          Math.PI/5);
+  c4.rotation.set(Math.PI/10, 0,          Math.PI/12);
+  c5.rotation.set(Math.PI/3,  Math.PI/7,  0);
+
+  group.add(c1, c2, c3, c4, c5);
+  group.position.set(320, 0, 0);
+  scene.add(group);
+
+  // Subtle floating particles
+  const ptGeo = new THREE.BufferGeometry();
+  const pts   = new Float32Array(120 * 3);
+  for (let i = 0; i < pts.length; i++) pts[i] = (Math.random() - .5) * 3000;
+  ptGeo.setAttribute('position', new THREE.BufferAttribute(pts, 3));
+  scene.add(new THREE.Points(ptGeo, new THREE.PointsMaterial({ color: 0x4fa8e8, size: 1.5, transparent: true, opacity: 0.2 })));
+
+  // Mouse parallax
+  let mx = 0, my = 0;
+  window.addEventListener('mousemove', e => {
+    mx = (e.clientX / window.innerWidth  - .5) * 2;
+    my = (e.clientY / window.innerHeight - .5) * 2;
+  });
+
+  let t = 0;
+  (function animate() {
+    requestAnimationFrame(animate);
+    t += 0.004;
+
+    group.rotation.x += 0.0018;
+    group.rotation.y += 0.0032;
+    group.rotation.z += 0.0008;
+
+    c1.rotation.x += 0.0004; c1.rotation.z += 0.0006;
+    c2.rotation.y += 0.0010; c2.rotation.x -= 0.0007;
+    c3.rotation.z += 0.0012; c3.rotation.x += 0.0008;
+    c4.rotation.y -= 0.0005; c4.rotation.z += 0.0003;
+    c5.rotation.x += 0.0030; c5.rotation.y += 0.0020;
+
+    group.position.x = 320 + mx * 30;
+    group.position.y = -my * 20;
+
+    const sc = 1 + Math.sin(t * .6) * .015;
+    group.scale.set(sc, sc, sc);
+
+    renderer.render(scene, camera);
+  })();
+})();
+
+/* ══ TYPEWRITER ══ */
+(function(){
+  const el    = document.getElementById('typed-el');
+  const roles = ['AI Enthusiast','Prompt Engineer','Developer','NLP Practitioner','Problem Solver'];
+  let ri = 0, ci = 0, del = false;
+  function tick() {
+    const cur = roles[ri];
+    if (!del) {
+      el.textContent = cur.slice(0, ++ci);
+      if (ci === cur.length) { del = true; setTimeout(tick, 1900); return; }
+    } else {
+      el.textContent = cur.slice(0, --ci);
+      if (ci === 0) { del = false; ri = (ri + 1) % roles.length; }
+    }
+    setTimeout(tick, del ? 48 : 88);
+  }
+  setTimeout(tick, 700);
+})();
+
+/* ══ NAVBAR SCROLL ══ */
+window.addEventListener('scroll', () => {
+  document.getElementById('nav').classList.toggle('on', scrollY > 50);
+});
+
+/* ══ HAMBURGER ══ */
+const hbg = document.getElementById('hbg');
+const nm  = document.getElementById('nm');
+const ns  = document.getElementById('ns');
+hbg.addEventListener('click', () => {
+  hbg.classList.toggle('o');
+  nm.classList.toggle('o');
+  ns.classList.toggle('o');
+});
+nm.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+  hbg.classList.remove('o'); nm.classList.remove('o'); ns.classList.remove('o');
+}));
+
+/* ══ SCROLL REVEAL ══ */
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.rv, .rvl, .rvr').forEach(el => obs.observe(el));
+
+/* ══ SKILLS ══ */
+const barsData = [
+  { n:'Prompt Engineering', l:92, e:'⚡', c:'#4fa8e8' },
+  { n:'AI Tools',           l:90, e:'🤖', c:'#4fa8e8' },
+  { n:'Python',             l:78, e:'🐍', c:'#3dc98a' },
+  { n:'Problem Solving',    l:85, e:'🧠', c:'#7b9fe8' },
+];
+const orbsData = [
+  {n:'Prompt Eng.',e:'⚡'},{n:'AI Tools',e:'🤖'},{n:'Python',e:'🐍'},
+  {n:'Java',e:'☕'},{n:'C',e:'⚙️'},{n:'C++',e:'🔧'},
+  {n:'MySQL',e:'🗄️'},{n:'HTML/CSS',e:'🌐'},{n:'NLP',e:'📝'},
+  {n:'Data Analysis',e:'📊'},{n:'Git',e:'🌿'},{n:'Problem Solving',e:'🧠'},
+];
+
+const barsEl = document.getElementById('sk-bars');
+barsData.forEach(s => {
+  const d = document.createElement('div');
+  d.className = 'card sb';
+  d.innerHTML = `<div class="sb-head"><div class="sb-nw"><span class="sb-em">${s.e}</span><span class="sb-n">${s.n}</span></div><span class="sb-p">${s.l}%</span></div><div class="sb-track"><div class="sb-fill" data-l="${s.l}" style="background:linear-gradient(90deg,${s.c},${s.c}66);box-shadow:0 0 8px ${s.c}44"></div></div>`;
+  barsEl.appendChild(d);
+});
+
+const orbsEl = document.getElementById('sk-orbs');
+orbsData.forEach(s => {
+  const d = document.createElement('div');
+  d.className = 'card sk-orb';
+  d.innerHTML = `<span class="sk-orb-em">${s.e}</span><span class="sk-orb-n">${s.n}</span>`;
+  orbsEl.appendChild(d);
+});
+
+// Animate skill bars when visible
+const barObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.sb-fill').forEach(b => {
+        setTimeout(() => b.style.width = b.dataset.l + '%', 120);
+      });
+    }
+  });
+}, { threshold: .2 });
+barObs.observe(barsEl);
+
+/* ══ CONTACT FORM ══ */
+document.getElementById('cf-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const btn = document.getElementById('cf-sub');
+  const ok  = document.getElementById('cf-ok');
+  btn.textContent = '✓ Sent!';
+  btn.disabled = true;
+  ok.classList.add('show');
+  setTimeout(() => {
+    btn.innerHTML = 'Send Message <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>';
+    btn.disabled = false;
+    ok.classList.remove('show');
+    e.target.reset();
+  }, 4000);
+});
+</script>
+</body>
+</html>
